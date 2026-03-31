@@ -20,6 +20,7 @@ body {
 header {
   padding: 24px 0 16px;
   text-align: center;
+  position: relative;
 }
 
 header h1 {
@@ -33,6 +34,62 @@ header h1 {
   font-size: 14px;
   margin-top: 4px;
   letter-spacing: 0.05em;
+}
+
+.btn-export-header {
+  position: absolute;
+  top: 24px;
+  right: 0;
+  background: transparent;
+  border: 1.5px solid #ddd;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 13px;
+  cursor: pointer;
+  color: #555;
+}
+
+.btn-export-header:hover {
+  border-color: #4a90e2;
+  color: #4a90e2;
+}
+
+/* Export Banner */
+.export-banner {
+  background: #e8f4fd;
+  border: 1.5px solid #4a90e2;
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+  font-size: 14px;
+  color: #1a1a1a;
+}
+
+.export-banner-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.btn-export {
+  padding: 8px 18px;
+  background: #4a90e2;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-dismiss {
+  padding: 8px 18px;
+  background: transparent;
+  color: #666;
+  border: 1.5px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
 }
 
 /* Form Card */

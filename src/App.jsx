@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 import './App.css'
 
 const GRADES = ['1', '2', '3']
+const EXPORT_ENTRY_THRESHOLD = 25
+const EXPORT_DAY_THRESHOLD = 7
 
 const emptyEntry = () => ({
   timestamp: new Date().toISOString(),
@@ -18,6 +20,27 @@ const emptyEntry = () => ({
 function formatTimestamp(iso) {
   const d = new Date(iso)
   return d.toLocaleString()
+}
+
+function daysSince(isoString) {
+  if (!isoString) return Infinity
+  const ms = Date.now() - new Date(isoString).getTime()
+  return ms / (1000 * 60 * 60 * 24)
+}
+
+function exportCSV(entries) {
+  const headers = ['timestamp', 'food', 'drink', 'cgm', 'comment', 'mucus', 'coughing', 'vigor', 'footPain']
+  const rows = entries.map(e =>
+    headers.map(h => `"${(e[h] ?? '').toString().replace(/"/g, '""')}"`).join(',')
+  )
+  const csv = [headers.join(','), ...rows].join('\n')
+  const blob = new Blob([csv], { type: 'text/csv' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `health-tracker-${new Date().toISOString().slice(0, 10)}.csv`
+  a.click()
+  URL.revokeObjectURL(url)
 }
 
 function GradeSelector({ label, value, onChange }) {
@@ -112,18 +135,59 @@ function EntryList({ entries }) {
   )
 }
 
+function ExportBanner({ entries, lastExport, onExport, onDismiss }) {
+  const entriesSinceExport = lastExport
+    ? entries.filter(e => new Date(e.timestamp) > new Date(lastExport)).length
+    : entries.length
+  const days = daysSince(lastExport)
+
+  const shouldPrompt = entries.length > 0 &&
+    (entriesSinceExport >= EXPORT_ENTRY_THRESHOLD || days >= EXPORT_DAY_THRESHOLD)
+
+  if (!shouldPrompt) return null
+
+  const reason = entriesSinceExport >= EXPORT_ENTRY_THRESHOLD
+    ? `You have ${entriesSinceExport} new entries since your last export.`
+    : `It's been ${Math.floor(days)} days since your last export.`
+
+  return (
+    <div className="export-banner">
+      <span>📤 Time to back up your data! {reason}</span>
+      <div className="export-banner-actions">
+        <button className="btn-export" onClick={onExport}>Export CSV</button>
+        <button className="btn-dismiss" onClick={onDismiss}>Later</button>
+      </div>
+    </div>
+  )
+}
+
 export default function App() {
   const [entries, setEntries] = useState(() => {
     const saved = localStorage.getItem('health-entries')
     return saved ? JSON.parse(saved) : []
   })
 
+  const [lastExport, setLastExport] = useState(() =>
+    localStorage.getItem('health-last-export') || null
+  )
+
+  const [bannerDismissed, setBannerDismissed] = useState(false)
+
   useEffect(() => {
     localStorage.setItem('health-entries', JSON.stringify(entries))
+    setBannerDismissed(false) // re-show banner after new entry saved
   }, [entries])
 
   function addEntry(entry) {
     setEntries(prev => [...prev, entry])
+  }
+
+  function handleExport() {
+    exportCSV(entries)
+    const now = new Date().toISOString()
+    setLastExport(now)
+    localStorage.setItem('health-last-export', now)
+    setBannerDismissed(true)
   }
 
   return (
@@ -131,7 +195,20 @@ export default function App() {
       <header>
         <h1>Health Tracker</h1>
         <p className="subtitle">MCVF Daily Log</p>
+        <button className="btn-export-header" onClick={handleExport} title="Export to CSV">
+          📤 Export
+        </button>
       </header>
+
+      {!bannerDismissed && (
+        <ExportBanner
+          entries={entries}
+          lastExport={lastExport}
+          onExport={handleExport}
+          onDismiss={() => setBannerDismissed(true)}
+        />
+      )}
+
       <main>
         <EntryForm onSave={addEntry} />
         <EntryList entries={entries} />
