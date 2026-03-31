@@ -28,6 +28,20 @@ function daysSince(isoString) {
   return ms / (1000 * 60 * 60 * 24)
 }
 
+function importJSON(file, onSuccess) {
+  const reader = new FileReader()
+  reader.onload = (e) => {
+    try {
+      const data = JSON.parse(e.target.result)
+      if (!Array.isArray(data)) throw new Error('Expected an array')
+      onSuccess(data)
+    } catch (err) {
+      alert('Import failed: ' + err.message)
+    }
+  }
+  reader.readAsText(file)
+}
+
 function exportCSV(entries) {
   const headers = ['timestamp', 'food', 'drink', 'cgm', 'comment', 'mucus', 'coughing', 'vigor', 'footPain']
   const rows = entries.map(e =>
@@ -182,6 +196,27 @@ export default function App() {
     setEntries(prev => [...prev, entry])
   }
 
+  function handleImport(e) {
+    const file = e.target.files[0]
+    if (!file) return
+    importJSON(file, (imported) => {
+      setEntries(prev => {
+        const merged = [...prev, ...imported]
+        // deduplicate by timestamp, then sort chronologically
+        const seen = new Set()
+        const unique = merged.filter(entry => {
+          if (seen.has(entry.timestamp)) return false
+          seen.add(entry.timestamp)
+          return true
+        })
+        unique.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
+        return unique
+      })
+      alert(`Imported ${imported.length} entries!`)
+    })
+    e.target.value = '' // reset so same file can be re-imported if needed
+  }
+
   function handleExport() {
     exportCSV(entries)
     const now = new Date().toISOString()
@@ -195,9 +230,15 @@ export default function App() {
       <header>
         <h1>Health Tracker</h1>
         <p className="subtitle">MCVF Daily Log</p>
-        <button className="btn-export-header" onClick={handleExport} title="Export to CSV">
-          📤 Export
-        </button>
+        <div className="header-actions">
+          <label className="btn-import-header" title="Import JSON">
+            📥 Import
+            <input type="file" accept=".json" onChange={handleImport} style={{ display: 'none' }} />
+          </label>
+          <button className="btn-export-header" onClick={handleExport} title="Export to CSV">
+            📤 Export
+          </button>
+        </div>
       </header>
 
       {!bannerDismissed && (

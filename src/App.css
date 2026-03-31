@@ -36,10 +36,39 @@ header h1 {
   letter-spacing: 0.05em;
 }
 
-.btn-export-header {
+.header-actions {
   position: absolute;
   top: 24px;
   right: 0;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.btn-import-header {
+  background: transparent;
+  border: 1.5px solid #ddd;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 13px;
+  cursor: pointer;
+  color: #555;
+}
+
+.btn-import-header:hover {
+  border-color: #4a90e2;
+  color: #4a90e2;
+}
+
+.btn-export-header {
+  background: transparent;
+  border: 1.5px solid #ddd;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 13px;
+  cursor: pointer;
+  color: #555;
+}
   background: transparent;
   border: 1.5px solid #ddd;
   border-radius: 8px;
@@ -53,6 +82,7 @@ header h1 {
   border-color: #4a90e2;
   color: #4a90e2;
 }
+
 
 /* Export Banner */
 .export-banner {
