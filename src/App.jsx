@@ -38,7 +38,7 @@ function exportCSV(entries) {
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
-  a.download = `health-tracker-${new Date().toISOString().slice(0, 10)}.csv`
+  a.download = 'health-tracker.csv'
   a.click()
   URL.revokeObjectURL(url)
 }
